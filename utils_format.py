@@ -1,9 +1,7 @@
 from terminaltables import SingleTable
 
-def create_head(headers):
-    return [headers]
-
-def create_table(header, rows, title):
+def create_table(columns_caption, rows, title):
+    header = [columns_caption]
     TABLE_DATA = header + rows
     return SingleTable(TABLE_DATA, title)
 
