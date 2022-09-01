@@ -1,13 +1,11 @@
 import argparse
 from datetime import datetime, timedelta
 
-from hh import get_all_salary as get_all_salary_hh
-from hh import get_vacance_count as get_vacance_count_hh
-from superjob import get_all_salary as get_all_salary_sj
-from superjob import get_vacance_count as get_vacance_count_sj
+from hh import VacanceProvider as VacanceProvider_HH
+from superjob import VacanceProvider as VacanceProvider_SJ
 
-from salary import salary_avg
-from utils_format import create_head, create_table, print_report, justify_right
+from salary import calc_salary_avg
+from utils_format import create_table, print_report, justify_right
 
 
 def print_table(title, head, rows):
@@ -16,23 +14,24 @@ def print_table(title, head, rows):
     print_report(table_instance)
 
 
-def read_vacancies_lang(language, area, date_str, get_vacance_count, get_all_salary):
-    count = get_vacance_count(language, area, date_str)
-    if count:
-        salaries = get_all_salary(language, area, date_str)    
-        salary_lang = salary_avg(salaries)                    
-        return [language, count, len(salaries), salary_lang]
+def read_vacancies_lang(vacance_provider, language, area, date_str):
+    salaries = vacance_provider.get_all_salary(language, area, date_str)    
+    vacancies_count = vacance_provider.vacancies_count    
+
+    if vacancies_count:        
+        salary_lang = calc_salary_avg(salaries)                    
+        return [language, vacancies_count, len(salaries), salary_lang]
     else:
         return [language, 'нет вакансий', '-', '-']
 
 
-def read_vacancies(area, date_str, get_vacance_count, get_all_salary):
+def read_vacancies(vacance_provider, area, date_str):
     languages = 'python java javascript PHP С++ C# TypeScript GO Ruby Swift'.split()        
 
     rows = []
     for language in languages:        
         rows.append(
-            read_vacancies_lang(language, area, date_str, get_vacance_count, get_all_salary)
+            read_vacancies_lang(vacance_provider, language, area, date_str)
         )        
 
     return rows
@@ -62,13 +61,16 @@ def main():
     if not args.date:        
         args.date = month_ago()
 
-    head = create_head(['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата'])
+    vp_hh = VacanceProvider_HH()
+    vp_sj = VacanceProvider_SJ()
 
-    rows = read_vacancies(4, args.date, get_vacance_count_hh, get_all_salary_hh)    
-    print_table('Head Hunter', head, rows)
+    columns_caption = ['Язык программирования', 'Вакансий найдено', 'Вакансий обработано', 'Средняя зарплата']
     
-    rows = read_vacancies(14, args.date, get_vacance_count_sj, get_all_salary_sj)
-    print_table('Super Job', head, rows)  
+    rows = read_vacancies(vp_hh, 4, args.date)    
+    print_table('Head Hunter', columns_caption, rows)
+    
+    rows = read_vacancies(vp_sj, 14, args.date)
+    print_table('Super Job', columns_caption, rows)  
 
 
 if __name__ == '__main__':          
