@@ -8,7 +8,7 @@ def salary_single(salary_from, salary_to):
     if salary_to:
         return int(salary_to * 0.8)
 
-def salary_avg(salaries):   
+def calc_salary_avg(salaries):   
     if len(salaries) == 0:
         return 0
 
